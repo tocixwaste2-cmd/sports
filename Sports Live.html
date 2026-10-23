@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sports Live — free streams, fights and news on Discord</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0f1f;--bg2:#121832;--ink:#eef1ff;--mute:#9aa3c7;--line:rgba(160,175,255,.16);
+  --card:rgba(255,255,255,.04);--live:#ff5a5f;--glow:#6f7dff;--moon:#8fe3d4;--amber:#ffc46b;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --bg:#f3f5ff;--bg2:#e6eaff;--ink:#12172e;--mute:#566089;--line:rgba(40,55,140,.16);
+  --card:rgba(255,255,255,.7);--live:#e5383b;--glow:#4a5af0;--moon:#0e8f7e;--amber:#c27b00;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f3f5ff;--bg2:#e6eaff;--ink:#12172e;--mute:#566089;--line:rgba(40,55,140,.16);--card:rgba(255,255,255,.7);--live:#e5383b;--glow:#4a5af0;--moon:#0e8f7e;--amber:#c27b00;color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.65 Figtree,system-ui,sans-serif;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+h1,h2,h3{font-family:'Bricolage Grotesque',Figtree,system-ui,sans-serif;line-height:1.05;margin:0;letter-spacing:-.025em}
+p{margin:0}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--moon);outline-offset:3px;border-radius:6px}
+.wrap{width:min(1120px,92%);margin:0 auto}
+
+/* background aurora */
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.aurora i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;animation:drift 22s ease-in-out infinite alternate}
+.aurora i:nth-child(1){width:52vw;height:52vw;left:-12vw;top:-14vw;background:var(--glow);opacity:.28}
+.aurora i:nth-child(2){width:40vw;height:40vw;right:-10vw;top:22vh;background:var(--moon);opacity:.14;animation-duration:28s}
+.aurora i:nth-child(3){width:36vw;height:36vw;left:30vw;bottom:-18vw;background:var(--live);opacity:.1;animation-duration:32s}
+@keyframes drift{to{transform:translate(8vw,6vh) scale(1.15)}}
+.grain{position:fixed;inset:0;z-index:-1;opacity:.05;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* nav */
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 70%,transparent);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{display:flex;align-items:center;gap:10px;font:800 19px 'Bricolage Grotesque',sans-serif;text-decoration:none;letter-spacing:-.02em}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--live);box-shadow:0 0 0 0 var(--live);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 70%,transparent)}70%,100%{box-shadow:0 0 0 12px transparent}}
+.nl{display:flex;gap:26px;align-items:center;font-size:15px;color:var(--mute)}
+.nl a{text-decoration:none;transition:color .2s}.nl a:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 26px;border-radius:999px;font:600 16px Figtree,sans-serif;text-decoration:none;color:#fff;background:linear-gradient(135deg,#6f7dff,#8a5cff);position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s;box-shadow:0 10px 36px -10px #6f7dff}
+.btn::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);transition:transform .7s}
+.btn:hover{transform:translateY(-3px);box-shadow:0 18px 44px -10px #6f7dff}
+.btn:hover::after{transform:translateX(120%)}
+.btn.sm{padding:9px 20px;font-size:14px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:hover{background:var(--card);box-shadow:none}
+
+/* hero */
+.hero{min-height:calc(100svh - 62px);display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding:50px 0 70px}
+.badge{display:inline-flex;align-items:center;gap:10px;padding:7px 16px 7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:14px;color:var(--mute)}
+h1{font-size:clamp(46px,7.4vw,98px);font-weight:800;margin:22px 0 22px}
+h1 span{display:block;overflow:hidden}
+h1 span b{display:block;font-weight:800;transform:translateY(110%);animation:rise 1.1s cubic-bezier(.2,.8,.2,1) forwards}
+h1 span:nth-child(2) b{animation-delay:.12s;background:linear-gradient(90deg,var(--moon),var(--glow) 60%,var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:rise 1.1s .12s cubic-bezier(.2,.8,.2,1) forwards,shine 8s linear infinite}
+h1 span:nth-child(3) b{animation-delay:.24s}
+@keyframes rise{to{transform:none}}
+@keyframes shine{to{background-position:-200% 0}}
+.lead{max-width:30em;font-size:19px;color:var(--mute);opacity:0;animation:fade 1s .6s forwards}
+.cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:34px;opacity:0;animation:fade 1s .8s forwards}
+@keyframes fade{to{opacity:1}}
+.badge{opacity:0;animation:fade 1s .1s forwards}
+
+/* cage screen */
+.screen{position:relative;aspect-ratio:1/1;max-width:520px;width:100%;margin-inline:auto;border-radius:32px;border:1px solid var(--line);background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--glow) 28%,transparent),transparent 60%),var(--bg2);overflow:hidden;box-shadow:0 40px 90px -30px rgba(70,80,255,.55);opacity:0;animation:fade 1.2s .3s forwards;transition:transform .2s}
+.screen svg{position:absolute;inset:0;width:100%;height:100%}
+.oct{fill:none;stroke:var(--moon);stroke-width:2;stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 3.2s .6s ease forwards;filter:drop-shadow(0 0 8px var(--moon))}
+.oct2{stroke:var(--glow);stroke-width:1;opacity:.6;animation-delay:1s}
+@keyframes draw{to{stroke-dashoffset:0}}
+.beam{position:absolute;left:50%;top:-10%;width:70%;height:90%;transform:translateX(-50%);background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 80%);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);opacity:.5;animation:sway 7s ease-in-out infinite alternate;transform-origin:top center}
+@keyframes sway{from{transform:translateX(-50%) rotate(-5deg)}to{transform:translateX(-50%) rotate(5deg)}}
+.live{position:absolute;top:20px;left:20px;display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font:600 13px Figtree,sans-serif;backdrop-filter:blur(6px)}
+.chat{position:absolute;left:18px;right:18px;bottom:18px;display:grid;gap:8px}
+.chat p{background:rgba(10,14,32,.65);color:#e8ecff;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);padding:8px 14px;border-radius:14px;font-size:14px;width:fit-content;max-width:90%;opacity:0;animation:msg 12s infinite}
+.chat p:nth-child(2){animation-delay:3s}.chat p:nth-child(3){animation-delay:6s}
+@keyframes msg{0%{opacity:0;transform:translateY(10px)}6%,34%{opacity:1;transform:none}42%,100%{opacity:0}}
+
+/* marquee */
+.marq{border-block:1px solid var(--line);overflow:hidden;padding:20px 0;background:color-mix(in srgb,var(--bg2) 60%,transparent)}
+.track{display:flex;gap:48px;width:max-content;animation:scroll 34s linear infinite;font:700 clamp(22px,3.4vw,38px) 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;color:transparent;-webkit-text-stroke:1px var(--mute)}
+.track span:nth-child(3n){color:var(--ink);-webkit-text-stroke:0}
+.marq:hover .track{animation-play-state:paused}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+section{padding:110px 0}
+h2{font-size:clamp(34px,5vw,60px);font-weight:800;max-width:15em}
+.sub{color:var(--mute);max-width:36em;margin-top:18px;font-size:18px}
+
+/* feature bento */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:18px;margin-top:54px}
+.card{position:relative;padding:32px;border-radius:26px;border:1px solid var(--line);background:var(--card);overflow:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .3s}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(360px circle at var(--mx,50%) var(--my,0%),color-mix(in srgb,var(--glow) 26%,transparent),transparent 60%);opacity:0;transition:opacity .3s}
+.card:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--glow) 55%,transparent)}
+.card:hover::before{opacity:1}
+.card>*{position:relative}
+.card h3{font-size:26px;margin:20px 0 10px}
+.card p{color:var(--mute);font-size:16px}
+.c1{grid-column:span 4;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}
+.c2{grid-column:span 2}.c3{grid-column:span 2}.c4{grid-column:span 2}.c5{grid-column:span 2}
+.ico{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:color-mix(in srgb,var(--glow) 18%,transparent);color:var(--moon)}
+.ico svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.bars{display:flex;gap:6px;align-items:end;height:90px}
+.bars i{width:8px;border-radius:4px;background:linear-gradient(var(--moon),var(--glow));animation:eq 1.6s ease-in-out infinite alternate}
+.bars i:nth-child(2){animation-delay:.2s}.bars i:nth-child(3){animation-delay:.5s}.bars i:nth-child(4){animation-delay:.1s}.bars i:nth-child(5){animation-delay:.7s}.bars i:nth-child(6){animation-delay:.35s}
+@keyframes eq{from{height:18%}to{height:100%}}
+
+/* free */
+.free{text-align:center}
+.free .wrap{padding:90px 6%;border-radius:40px;border:1px solid var(--line);background:radial-gradient(70% 90% at 50% 0%,color-mix(in srgb,var(--amber) 16%,transparent),transparent 70%),var(--card);position:relative;overflow:hidden}
+.big0{font:800 clamp(120px,24vw,280px)/.9 'Bricolage Grotesque',sans-serif;letter-spacing:-.06em;background:linear-gradient(180deg,var(--amber),var(--live));-webkit-background-clip:text;background-clip:text;color:transparent}
+.free h2{margin:10px auto 0;max-width:12em}
+.free .sub{margin-inline:auto}
+.chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:34px}
+.chips span{padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-size:15px}
+.chips span::before{content:"✓";color:var(--moon);margin-right:8px;font-weight:700}
+
+/* calm */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.calm-art{aspect-ratio:1;border-radius:50%;max-width:400px;margin-inline:auto;position:relative;display:grid;place-items:center}
+.calm-art i{position:absolute;inset:0;border-radius:50%;border:1px solid var(--moon);opacity:0;animation:ring 7s ease-out infinite}
+.calm-art i:nth-child(2){animation-delay:2.3s}.calm-art i:nth-child(3){animation-delay:4.6s}
+@keyframes ring{0%{transform:scale(.3);opacity:.7}100%{transform:scale(1.05);opacity:0}}
+.calm-art b{width:34%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--moon),var(--glow));box-shadow:0 0 80px var(--glow);animation:breathe 6s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.18)}}
+.rules{list-style:none;padding:0;margin:30px 0 0;display:grid;gap:14px}
+.rules li{padding:16px 20px;border-left:2px solid var(--moon);background:var(--card);border-radius:0 14px 14px 0;color:var(--mute)}
+.rules li strong{color:var(--ink);font-weight:600}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:50px;counter-reset:s}
+.step{padding:30px;border-radius:24px;border:1px solid var(--line);background:var(--card);counter-increment:s}
+.step::before{content:counter(s);display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--glow),var(--moon));color:#07102a;font:800 18px 'Bricolage Grotesque',sans-serif;margin-bottom:18px}
+.step h3{font-size:22px;margin-bottom:8px}.step p{color:var(--mute);font-size:16px}
+
+/* final */
+.final{text-align:center;padding:130px 0 90px}
+.final h2{margin-inline:auto;font-size:clamp(40px,6.4vw,84px)}
+.final .btn{margin-top:38px;padding:20px 40px;font-size:19px}
+footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mute);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+.rv{opacity:0;transform:translateY(28px);transition:opacity .9s,transform .9s cubic-bezier(.2,.8,.2,1)}
+.rv.in{opacity:1;transform:none}
+
+@media (max-width:860px){
+  .hero,.split{grid-template-columns:1fr}.hero{padding-top:30px}
+  .nl a:not(.btn){display:none}
+  .bento{grid-template-columns:1fr}.c1,.c2,.c3,.c4,.c5{grid-column:auto}.c1{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}section{padding:76px 0}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  h1 span b,.lead,.cta,.badge,.screen,.chat p{opacity:1!important;transform:none!important}
+  .oct{stroke-dashoffset:0}.rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div><div class="grain"></div>
+
+<nav><div class="wrap">
+  <a class="logo" href="#top"><span class="dot"></span>Sports Live</a>
+  <div class="nl"><a href="#what">What you get</a><a href="#free">Free</a><a href="#vibe">The vibe</a><a href="#join">How to join</a>
+  <a class="btn sm" href="https://discord.gg/GxfBhAUGM" target="_blank" rel="noopener">Join Discord</a></div>
+</div></nav>
+
+<header class="wrap hero" id="top">
+  <div>
+    <div class="badge"><span class="dot"></span>Streaming on Discord, free for everyone</div>
+    <h1><span><b>Fight night,</b></span><span><b>no paywall.</b></span><span><b>No noise.</b></span></h1>
+    <p class="lead">Sports Live is a calm Discord server where we stream MMA fights and other sports for free, and keep you up to date with the latest sports news.</p>
+    <div class="cta">
+      <a class="btn" href="https://discord.gg/GxfBhAUGM" target="_blank" rel="noopener">Join the server</a>
+      <a class="btn ghost" href="#what">See what’s inside</a>
+    </div>
+  </div>
+  <div class="screen" id="screen" aria-hidden="true">
+    <div class="beam"></div>
+    <svg viewBox="0 0 400 400"><polygon class="oct" points="140,60 260,60 340,140 340,260 260,340 140,340 60,260 60,140"/><polygon class="oct oct2" points="140,100 260,100 300,140 300,260 260,300 140,300 100,260 100,140"/></svg>
+    <div class="live"><span class="dot"></span>LIVE</div>
+    <div class="chat"><p>Stream’s up, grab a seat 🍿</p><p>Great fight so far, calm chat as always</p><p>Thanks for keeping it free 🙌</p></div>
+  </div>
+</header>
+
+<div class="marq" aria-hidden="true"><div class="track">
+  <span>MMA</span><span>Boxing</span><span>Football</span><span>Basketball</span><span>Tennis</span><span>Fight nights</span><span>Live news</span><span>Free streams</span>
+  <span>MMA</span><span>Boxing</span><span>Football</span><span>Basketball</span><span>Tennis</span><span>Fight nights</span><span>Live news</span><span>Free streams</span>
+</div></div>
+
+<section id="what"><div class="wrap">
+  <h2 class="rv">Everything you came to watch, in one server.</h2>
+  <p class="sub rv">Join, pick a channel and watch. No sign-ups elsewhere, no subscriptions, no ads to dodge.</p>
+  <div class="bento">
+    <div class="card c1 rv">
+      <div>
+        <div class="ico"><svg viewBox="0 0 24 24"><polygon points="8,3 16,3 21,8 21,16 16,21 8,21 3,16 3,8"/></svg></div>
+        <h3>MMA fights, streamed live</h3>
+        <p>Our main event. When a fight is on, we stream it in the server so you can watch with the community, right in Discord.</p>
+      </div>
+      <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="card c2 rv"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6c3.5 3 3.5 9.8 0 12.8M18.4 5.6c-3.5 3-3.5 9.8 0 12.8"/></svg></div><h3>Other sports too</h3><p>Beyond MMA we stream more sports, so there is usually something on.</p></div>
+    <div class="card c3 rv"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 5h13a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg></div><h3>Sports news</h3><p>Results, announcements and headlines posted in the server, so you stay in the loop.</p></div>
+    <div class="card c4 rv"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></div><h3>Chat with fans</h3><p>Talk through the fights with people who love the same sports.</p></div>
+    <div class="card c5 rv"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/></svg></div><h3>Zero cost</h3><p>Nothing to buy and nothing hidden. See the next section.</p></div>
+  </div>
+</div></section>
+
+<section class="free" id="free"><div class="wrap rv">
+  <div class="big0" aria-label="Zero">0</div>
+  <h2>Everything here is free.</h2>
+  <p class="sub">The streams, the news and the community cost nothing. No paid tiers, no premium channels, no trial that ends.</p>
+  <div class="chips"><span>Free streams</span><span>Free news</span><span>Free to join</span><span>Free to stay</span></div>
+</div></section>
+
+<section id="vibe"><div class="wrap split">
+  <div class="calm-art rv" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
+  <div class="rv">
+    <h2>A calm place to watch the fight.</h2>
+    <p class="sub">Sports Live is a relaxed server. We watch together without the shouting matches and spam you find elsewhere.</p>
+    <ul class="rules">
+      <li><strong>Relaxed by design.</strong> Big fights, quiet energy.</li>
+      <li><strong>Respect everyone.</strong> Hype the fighters, not each other down.</li>
+      <li><strong>Come as you are.</strong> Casual viewers and hardcore fans both belong.</li>
+    </ul>
+  </div>
+</div></section>
+
+<section id="join"><div class="wrap">
+  <h2 class="rv">Joining takes under a minute.</h2>
+  <div class="steps">
+    <div class="step rv"><h3>Open the invite</h3><p>Tap any Join button on this page. It opens Discord.</p></div>
+    <div class="step rv"><h3>Accept and say hi</h3><p>Join the server and look around the channels.</p></div>
+    <div class="step rv"><h3>Watch for free</h3><p>Jump into a stream when one is live, and check the news channel for what’s next.</p></div>
+  </div>
+</div></section>
+
+<section class="final"><div class="wrap rv">
+  <h2>Your seat is free.</h2>
+  <p class="sub" style="margin-inline:auto">Come watch the next fight with us.</p>
+  <a class="btn" href="https://discord.gg/GxfBhAUGM" target="_blank" rel="noopener">Join Sports Live on Discord</a>
+</div></section>
+
+<footer><div class="wrap"><span>© Sports Live</span><span>Free streams, sports news and a calm community.</span></div></footer>
+
+<script>
+(function(){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.15});
+  document.querySelectorAll('.rv').forEach(function(el,i){el.style.transitionDelay=(i%3)*90+'ms';io.observe(el)});
+  document.querySelectorAll('.card').forEach(function(c){
+    c.addEventListener('pointermove',function(e){var r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')});
+  });
+  var s=document.getElementById('screen');
+  if(s&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    s.addEventListener('pointermove',function(e){var r=s.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;s.style.transform='perspective(900px) rotateY('+x*10+'deg) rotateX('+(-y*10)+'deg)'});
+    s.addEventListener('pointerleave',function(){s.style.transform=''});
+  }
+})();
+</script>
+</body>
+</html>
